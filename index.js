@@ -1,14 +1,19 @@
 const express = require("express");
 const app = express();
-const PORT = 3000;
 var bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+require("dotenv").config();
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(__dirname + "/public")); // set location of static files
-app.set("view engine", "ejs");
+app.use(cookieParser());
+app.use(express.static(__dirname + "/public")); //static files
+app.set("view engine", "ejs"); //template engine
+const PORT = process.env.PORT;
 
+//routes
 const agentRoutes = require("./routes/agent.routes");
 const customerRoutes = require("./routes/customer.routes");
 
+//connect database
 const sqlite3 = require("sqlite3").verbose();
 global.db = new sqlite3.Database("./database.db", function (err) {
   if (err) {
