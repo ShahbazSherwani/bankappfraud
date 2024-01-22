@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const PORT = 3000;
+var bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(__dirname + "/public")); // set location of static files
 app.set("view engine", "ejs");
 
 const agentRoutes = require("./routes/agent.routes");
