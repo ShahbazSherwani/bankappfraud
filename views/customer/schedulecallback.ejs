@@ -4,9 +4,8 @@
     <%= slots[i]["day"]%>
     <%=slots[i]["date"]%>/<%=slots[i]["month"]%>/<%=slots[i]["year"]%>
   </h4>
-  <% for(let j = 0; j < times.length; j++) { %> 
-    <input type="radio" name="time" value="<%=slots[i]["year"]%>-<%=slots[i]["month"]%>-<%=slots[i]["date"]%> <%=times[j]%>"
-  /><%=times[j]%></input >
+  <% for(let j = 0; j < slots[i]["timestamps"].length; j++) { %> 
+    <input type="radio" name="time" value="<%=slots[i]["timestamps"][j]%>"><%=slots[i]["times"][j]%></input >
   <br />
   <% }; %> 
   <% }; %>

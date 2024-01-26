@@ -67,7 +67,7 @@ const getCustomer = function (req, res, next) {
 const getCallback = function (req, res, next) {
   const customerID = req.customer["id"];
   const slots = [];
-  const days = ["MON", "TUES", "WEDS", "THURS", "FRI", "SAT", "SUN"];
+  const days = ["SUN", "MON", "TUES", "WEDS", "THURS", "FRI", "SAT"];
   const times = [
     "10:00:00",
     "12:00:00",
@@ -88,20 +88,34 @@ const getCallback = function (req, res, next) {
         ? `0${dayOfWeek.getMonth() + 1}`
         : `${dayOfWeek.getMonth() + 1}`;
     const year = `${dayOfWeek.getFullYear()}`;
-    slots.push({ day, date, month, year });
+    const timestamps = [];
+    for (let j = 0; j < times.length; j++) {
+      timestamps.push(`${year}-${month}-${date} ${times[j]}`);
+    }
+    slots.push({ day, date, month, year, times, timestamps });
   }
 
-  const query = "SELECT * from callbacks";
+  const query = "SELECT call_from from callbacks";
   global.db.all(query, function (err, rows) {
     if (err) {
       next(err);
     } else {
-      const callbacks = rows;
+      const callbacks = rows; //callback variable to filter only available slots
+      //TRIPLE FOR LOOP!!!
+      for (let i = 0; i < slots.length; i++) {
+        for (let j = 0; j < slots[i]["timestamps"].length; j++) {
+          for (let k = 0; k < callbacks.length; k++) {
+            //if callback already booked, delete from slots
+            if (slots[i]["timestamps"][j] === callbacks[k]["call_from"]) {
+              slots[i]["timestamps"].splice(j, 1);
+              j--;
+            }
+          }
+        }
+      }
       res.render("customer/schedulecallback.ejs", {
         customerID: customerID,
-        callbacks: callbacks,
         slots: slots,
-        times: times,
       });
     }
   });
@@ -127,7 +141,7 @@ const postCallback = function (req, res, next) {
 const getFraudReport = function (req, res, next) {
   const query = "SELECT * from customers WHERE id=?";
   //should be changed to req.customer
-  const values = [req.params.id];
+  const values = [req.customer["id"]];
 
   global.db.all(query, values, function (err, rows) {
     if (err) {
@@ -144,7 +158,7 @@ const getFraudReport = function (req, res, next) {
 const postFraudReport = function (req, res, next) {
   const query =
     "INSERT INTO fraud_reports ('customer_id', 'fraud_time', 'fraud_tel', 'fraud_description') VALUES (?,?,?,?)";
-  const customerID = req.params.id;
+  const customerID = req.customer["id"];
   const fraudTime = req.body.fraud_time;
   const fraudTel = req.body.fraud_tel;
   const fraudDescription = req.body.fraud_description;
