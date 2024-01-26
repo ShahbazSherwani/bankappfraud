@@ -22,11 +22,11 @@ CREATE TABLE IF NOT EXISTS agents (
 
 CREATE TABLE IF NOT EXISTS callbacks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    topic TEXT NOT NULL,
+    -- topic TEXT NOT NULL, //temporarily disabled during development
     customer_id INTEGER NOT NULL,
     created_at NOT NULL DEFAULT CURRENT_TIMESTAMP,
     call_from TIMESTAMP NOT NULL,
-    call_to TIMESTAMP NOT NULL,
+    -- call_to TIMESTAMP NOT NULL, //temporarily disabled during development
     FOREIGN KEY(customer_id) REFERENCES customers(id)
 );
 

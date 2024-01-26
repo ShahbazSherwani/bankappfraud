@@ -64,8 +64,69 @@ const getCustomer = function (req, res, next) {
   });
 };
 
+const getCallback = function (req, res, next) {
+  const customerID = req.customer["id"];
+  const slots = [];
+  const days = ["MON", "TUES", "WEDS", "THURS", "FRI", "SAT", "SUN"];
+  const times = [
+    "10:00:00",
+    "12:00:00",
+    "14:00:00",
+    "16:00:00",
+    "18:00:00",
+    "20:00:00",
+  ];
+  for (let i = 1; i < 8; i++) {
+    const dayOfWeek = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
+    const day = days[dayOfWeek.getDay()];
+    const date =
+      dayOfWeek.getDate() < 10
+        ? `0${dayOfWeek.getDate()}`
+        : `${dayOfWeek.getDate()}`;
+    const month =
+      dayOfWeek.getMonth() + 1 < 10
+        ? `0${dayOfWeek.getMonth() + 1}`
+        : `${dayOfWeek.getMonth() + 1}`;
+    const year = `${dayOfWeek.getFullYear()}`;
+    slots.push({ day, date, month, year });
+  }
+
+  const query = "SELECT * from callbacks";
+  global.db.all(query, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      const callbacks = rows;
+      res.render("customer/schedulecallback.ejs", {
+        customerID: customerID,
+        callbacks: callbacks,
+        slots: slots,
+        times: times,
+      });
+    }
+  });
+};
+
+const postCallback = function (req, res, next) {
+  const customerID = req.customer["id"];
+  const slot = req.body.time;
+  const query =
+    "INSERT INTO callbacks ('customer_id', 'created_at', 'call_from') VALUES (?, CURRENT_TIMESTAMP, ?)";
+  const values = [customerID, slot];
+
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      //no EJS page created yet!!
+      res.send(`customer ${customerID} booked slot at ${slot}`);
+    }
+  });
+};
+
 const getFraudReport = function (req, res, next) {
   const query = "SELECT * from customers WHERE id=?";
+  //should be changed to req.customer
   const values = [req.params.id];
 
   global.db.all(query, values, function (err, rows) {
@@ -104,6 +165,8 @@ module.exports = {
   postCustomerLogin,
   getCustomerLogout,
   getCustomer,
+  getCallback,
+  postCallback,
   getFraudReport,
   postFraudReport,
 };
