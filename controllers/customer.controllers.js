@@ -45,12 +45,14 @@ const postCustomerLogin = function (req, res) {
 };
 
 const getCustomerLogout = function (req, res) {
+  res.clearCookie("token");
   res.render("customer/logout.ejs");
 };
 
 const getCustomer = function (req, res, next) {
   const query = "SELECT * from customers WHERE id=?";
-  const values = [req.params.id];
+  const customerID = req.customer["id"];
+  const values = [customerID];
 
   global.db.all(query, values, function (err, rows) {
     if (err) {
@@ -67,7 +69,7 @@ const getCustomer = function (req, res, next) {
 const getCallback = function (req, res, next) {
   const customerID = req.customer["id"];
   const slots = [];
-  const days = ["SUN", "MON", "TUES", "WEDS", "THURS", "FRI", "SAT"];
+  const daysString = ["SUN", "MON", "TUES", "WEDS", "THURS", "FRI", "SAT"];
   const times = [
     "10:00:00",
     "12:00:00",
@@ -78,7 +80,8 @@ const getCallback = function (req, res, next) {
   ];
   for (let i = 1; i < 8; i++) {
     const dayOfWeek = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
-    const day = days[dayOfWeek.getDay()];
+
+    const day = daysString[dayOfWeek.getDay()];
     const date =
       dayOfWeek.getDate() < 10
         ? `0${dayOfWeek.getDate()}`
@@ -88,15 +91,22 @@ const getCallback = function (req, res, next) {
         ? `0${dayOfWeek.getMonth() + 1}`
         : `${dayOfWeek.getMonth() + 1}`;
     const year = `${dayOfWeek.getFullYear()}`;
+
+    const fullDate = `${day} ${date}/${month}/${year}`;
+
     const timestamps = [];
     for (let j = 0; j < times.length; j++) {
       timestamps.push(`${year}-${month}-${date} ${times[j]}`);
     }
-    slots.push({ day, date, month, year, times, timestamps });
+    slots.push({ fullDate, times, timestamps });
   }
 
-  const query = "SELECT call_from from callbacks";
-  global.db.all(query, function (err, rows) {
+  //compare offered slots with future booked slots only, not past booked slots
+  const query = "SELECT call_from from callbacks where call_from >= ?";
+  const earliestSlotOffered = slots[0]["timestamps"][0];
+  const values = [earliestSlotOffered];
+
+  global.db.all(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {

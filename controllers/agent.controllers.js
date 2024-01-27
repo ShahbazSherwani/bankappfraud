@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const getAgents = function (req, res) {
+const getAgents = function (req, res, next) {
   const query = "SELECT * from agents";
 
   global.db.all(query, function (err, rows) {
@@ -44,9 +44,15 @@ const postAgentLogin = function (req, res, next) {
   });
 };
 
+const getAgentLogout = function (req, res, next) {
+  res.clearCookie("token");
+  res.send("agent is now logged out");
+};
+
 const getAgent = function (req, res, next) {
   const query = "SELECT * from agents WHERE id=?";
-  const values = [req.params.id];
+  const agentID = req.agent["id"];
+  const values = [agentID];
 
   global.db.all(query, values, function (err, rows) {
     if (err) {
@@ -60,9 +66,36 @@ const getAgent = function (req, res, next) {
   });
 };
 
+const getCustomers = function (req, res, next) {
+  const query = "SELECT * from customers";
+  const agentID = req.agent["id"];
+
+  global.db.all(query, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      const customers = rows;
+      res.render("agent/customers.ejs", {
+        agentID: agentID,
+        customers: customers,
+      });
+    }
+  });
+};
+const getCustomersCallbacks = function (req, res, next) {
+  res.send("test");
+};
+const postCallCustomer = function (req, res, next) {
+  res.send("test");
+};
+
 module.exports = {
   getAgents,
   getAgentLogin,
   postAgentLogin,
+  getAgentLogout,
   getAgent,
+  getCustomers,
+  getCustomersCallbacks,
+  postCallCustomer,
 };
