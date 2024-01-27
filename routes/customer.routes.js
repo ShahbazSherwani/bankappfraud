@@ -3,7 +3,6 @@ const router = express.Router();
 const cookieJwtAuth = require("../middlewares/customer.cookieJwtAuth");
 
 const {
-  allCustomers,
   getCustomerLogin,
   postCustomerLogin,
   getCustomerLogout,
@@ -14,7 +13,6 @@ const {
   postFraudReport,
 } = require("../controllers/customer.controllers");
 
-router.get("/", allCustomers);
 router.get("/login", getCustomerLogin);
 router.post("/login", postCustomerLogin);
 router.get("/logout", getCustomerLogout);

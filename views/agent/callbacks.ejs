@@ -1,0 +1,12 @@
+<h1>Callbacks</h1>
+
+<ul>
+  <% for(let i = 0; i < callbackInfo.length; i++) { %>
+  <li>
+    <p>
+      <%=callbackInfo[i]["username"]%> requested call on
+      <%=callbackInfo[i]["call_from"]%>
+    </p>
+  </li>
+  <% }; %>
+</ul>

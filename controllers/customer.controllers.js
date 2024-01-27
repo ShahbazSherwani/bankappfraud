@@ -1,20 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-const allCustomers = function (req, res) {
-  const query = "SELECT * from customers";
-
-  global.db.all(query, function (err, rows) {
-    if (err) {
-      next(err);
-    } else {
-      const customers = rows;
-      res.render("customer/home.ejs", {
-        customers: customers,
-      });
-    }
-  });
-};
-
 const getCustomerLogin = function (req, res) {
   res.render("customer/login.ejs");
 };
@@ -184,7 +169,6 @@ const postFraudReport = function (req, res, next) {
 };
 
 module.exports = {
-  allCustomers,
   getCustomerLogin,
   postCustomerLogin,
   getCustomerLogout,

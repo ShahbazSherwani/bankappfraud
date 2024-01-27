@@ -3,7 +3,6 @@ const router = express.Router();
 const cookieJwtAuth = require("../middlewares/agent.cookieJwtAuth");
 
 const {
-  getAgents,
   getAgentLogin,
   postAgentLogin,
   getAgentLogout,
@@ -13,7 +12,6 @@ const {
   postCallCustomer,
 } = require("../controllers/agent.controllers");
 
-router.get("/", getAgents);
 router.get("/login", getAgentLogin);
 router.post("/login", postAgentLogin);
 router.get("/logout", getAgentLogout);
