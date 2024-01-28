@@ -3,10 +3,16 @@
 <ul>
   <% for(let i = 0; i < callbackInfo.length; i++) { %>
   <li>
-    <p>
-      <%=callbackInfo[i]["username"]%> requested call on
-      <%=callbackInfo[i]["call_from"]%>
-    </p>
+    <form action="" method="POST">
+      <p>
+        <%=callbackInfo[i]["username"]%> requested call on
+        <%=callbackInfo[i]["call_from"]%>
+      </p>
+      <input type="hidden" name="customer_id"
+      value="<%=callbackInfo[i]["customerID"]%>"> <input type="hidden"
+      name="callback_id" value="<%=callbackInfo[i]["callbackID"]%>">
+      <input type="submit" value="send validation token" />
+    </form>
   </li>
   <% }; %>
 </ul>

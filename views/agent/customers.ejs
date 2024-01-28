@@ -1,7 +1,12 @@
 <ul>
   <% for(let i = 0; i < customers.length; i++) { %>
   <li>
-    <h1><%=customers[i]["username"]%></h1>
+    <form action="agent/sendtoken" method="post">
+      <h1><%=customers[i]["username"]%></h1>
+      <input type="hidden" name="customer_id"
+      value="<%=customers[i]["customerID"]%>">
+      <input type="submit" value="send validation token" />
+    </form>
   </li>
   <% }; %>
 </ul>

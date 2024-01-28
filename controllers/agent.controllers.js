@@ -52,7 +52,7 @@ const getAgent = function (req, res, next) {
 };
 
 const getCustomers = function (req, res, next) {
-  const query = "SELECT * from customers";
+  const query = "SELECT username, id as customerID from customers";
   const agentID = req.agent["id"];
 
   global.db.all(query, function (err, rows) {
@@ -69,7 +69,7 @@ const getCustomers = function (req, res, next) {
 };
 const getCustomersCallbacks = function (req, res, next) {
   const query =
-    "SELECT customers.username, callbacks.call_from FROM customers JOIN callbacks ON customers.id = callbacks.customer_id ORDER BY callbacks.call_from";
+    "SELECT customers.username, customers.id as customerID, callbacks.call_from, callbacks.id as callbackID FROM customers JOIN callbacks ON customers.id = callbacks.customer_id ORDER BY callbacks.call_from";
   const agentID = req.agent["id"];
 
   global.db.all(query, function (err, rows) {
@@ -84,8 +84,20 @@ const getCustomersCallbacks = function (req, res, next) {
     }
   });
 };
+
 const postCallCustomer = function (req, res, next) {
-  res.send("test");
+  const { customer_id, callback_id } = req.body;
+  const agentID = req.agent["id"];
+  const query =
+    "INSERT INTO active_calls ('customer_id', 'agent_id', 'callback_id') VALUES (?,?,?)";
+  const values = [customer_id, agentID, callback_id];
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      res.send("token sent to customer");
+    }
+  });
 };
 
 module.exports = {
