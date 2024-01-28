@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS active_calls (
     customer_id INTEGER NOT NULL,
     agent_id INTEGER NOT NULL,
     callback_id INTEGER default -1, -- not every outbound call is due to a callback 
-    created_at NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    validation_token INTEGER NOT NULL,
     is_validated BOOLEAN NOT NULL DEFAULT 0, 
     validated_at TIMESTAMP,
     FOREIGN KEY(customer_id) REFERENCES customers(id),
