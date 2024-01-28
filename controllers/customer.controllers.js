@@ -135,7 +135,6 @@ const postCallback = function (req, res, next) {
 
 const getFraudReport = function (req, res, next) {
   const query = "SELECT * from customers WHERE id=?";
-  //should be changed to req.customer
   const values = [req.customer["id"]];
 
   global.db.all(query, values, function (err, rows) {
@@ -168,6 +167,21 @@ const postFraudReport = function (req, res, next) {
   });
 };
 
+const getValidate = function (req, res) {
+  const query = "SELECT * from active_calls WHERE customer_id = ? LIMIT 1";
+  const values = [req.customer["id"]];
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      const active_call = rows[0];
+      res.render("customer/validateagent.ejs", {
+        active_call: active_call,
+      });
+    }
+  });
+};
+
 module.exports = {
   getCustomerLogin,
   postCustomerLogin,
@@ -177,4 +191,5 @@ module.exports = {
   postCallback,
   getFraudReport,
   postFraudReport,
+  getValidate,
 };

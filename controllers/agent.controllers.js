@@ -67,6 +67,25 @@ const getCustomers = function (req, res, next) {
     }
   });
 };
+
+//postCustomer and postCustomerCallback can be merged as one function
+const postCustomer = function (req, res, next) {
+  const { customer_id } = req.body;
+  const agentID = req.agent["id"];
+  //generate random number of 4 digits - temp function, to be replaced by encrypted function
+  const randomToken = Math.random().toString().substring(2, 6);
+  const query =
+    "INSERT INTO active_calls ('customer_id', 'agent_id','validation_token') VALUES (?,?,?)";
+  const values = [customer_id, agentID, randomToken];
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      res.send("token sent to customer");
+    }
+  });
+};
+
 const getCustomersCallbacks = function (req, res, next) {
   const query =
     "SELECT customers.username, customers.id as customerID, callbacks.call_from, callbacks.id as callbackID FROM customers JOIN callbacks ON customers.id = callbacks.customer_id ORDER BY callbacks.call_from";
@@ -85,12 +104,14 @@ const getCustomersCallbacks = function (req, res, next) {
   });
 };
 
-const postCallCustomer = function (req, res, next) {
+const postCustomerCallback = function (req, res, next) {
   const { customer_id, callback_id } = req.body;
   const agentID = req.agent["id"];
+  //generate random number of 4 digits - temp function  to be replaced by encrypted function
+  const randomToken = Math.random().toString().substring(2, 6);
   const query =
-    "INSERT INTO active_calls ('customer_id', 'agent_id', 'callback_id') VALUES (?,?,?)";
-  const values = [customer_id, agentID, callback_id];
+    "INSERT INTO active_calls ('customer_id', 'agent_id', 'callback_id', 'validation_token') VALUES (?,?,?,?)";
+  const values = [customer_id, agentID, callback_id, randomToken];
   global.db.all(query, values, function (err, rows) {
     if (err) {
       next(err);
@@ -106,6 +127,7 @@ module.exports = {
   getAgentLogout,
   getAgent,
   getCustomers,
+  postCustomer,
   getCustomersCallbacks,
-  postCallCustomer,
+  postCustomerCallback,
 };

@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS active_calls (
     is_validated BOOLEAN NOT NULL DEFAULT 0, 
     validated_at TIMESTAMP,
     FOREIGN KEY(customer_id) REFERENCES customers(id),
-    FOREIGN KEY(agent_id) REFERENCES agents(id),
-    FOREIGN KEY(callback_id) REFERENCES callbacks(id)
+    FOREIGN KEY(agent_id) REFERENCES agents(id)
+    -- FOREIGN KEY(callback_id) REFERENCES callbacks(id)
 );
 
 CREATE TABLE IF NOT EXISTS fraud_reports (

@@ -11,6 +11,7 @@ const {
   postCallback,
   getFraudReport,
   postFraudReport,
+  getValidate,
 } = require("../controllers/customer.controllers");
 
 router.get("/login", getCustomerLogin);
@@ -21,5 +22,6 @@ router.get("/:id/schedulecallback", cookieJwtAuth, getCallback);
 router.post("/:id/bookedcallback", cookieJwtAuth, postCallback);
 router.get("/:id/fraud-report", cookieJwtAuth, getFraudReport);
 router.post("/:id/fraud-report", cookieJwtAuth, postFraudReport);
+router.get("/:id/validate", cookieJwtAuth, getValidate);
 
 module.exports = router;
