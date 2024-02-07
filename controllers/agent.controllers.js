@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 
-const getAgentLogin = function (req, res, next) {
-  res.render("agent/login.ejs");
-};
+const getAgentLogin = function(req,res,next){
+    res.render("agent/agentlogin.html");
+  };
 
 const postAgentLogin = function (req, res, next) {
   const query = "SELECT id from agents WHERE username=? AND password=?";
@@ -29,9 +29,10 @@ const postAgentLogin = function (req, res, next) {
   });
 };
 
-const getAgentLogout = function (req, res, next) {
-  res.clearCookie("token");
-  res.send("agent is now logged out");
+const getAgentLogout = function (req, res,next) {
+    res.clearCookie("token");
+    res.send("agent is now logged out");
+    
 };
 
 const getAgent = function (req, res, next) {

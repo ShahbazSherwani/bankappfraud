@@ -13,8 +13,8 @@ const {
   postCustomerCallback,
 } = require("../controllers/agent.controllers");
 
-router.get("/login", getAgentLogin);
-router.post("/login", postAgentLogin);
+router.get("/agent-login", getAgentLogin);
+router.post("/Agentlogin", postAgentLogin);
 router.get("/logout", getAgentLogout);
 router.get("/:id", cookieJwtAuth, getAgent);
 router.get("/:id/customers", cookieJwtAuth, getCustomers);

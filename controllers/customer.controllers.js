@@ -1,10 +1,11 @@
 const jwt = require("jsonwebtoken");
 
-const getCustomerLogin = function (req, res) {
-  res.render("customer/login.ejs");
+const getCustomerLogin = function (req, res,next) {
+  res.render("customer/login.html");
 };
 
-const postCustomerLogin = function (req, res) {
+
+const postCustomerLogin = function (req, res, next) {
   const query = "SELECT id from customers WHERE username=? AND password=?";
   const { username, password } = req.body;
   const values = [username, password];
@@ -23,7 +24,7 @@ const postCustomerLogin = function (req, res) {
       res.cookie("token", token, {
         httpOnly: true,
       });
-
+      
       res.redirect(`/customer/${customer["id"]}`);
     }
   });

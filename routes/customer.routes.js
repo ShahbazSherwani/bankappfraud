@@ -14,7 +14,7 @@ const {
   getValidate,
 } = require("../controllers/customer.controllers");
 
-router.get("/login", getCustomerLogin);
+router.get("/user-login", getCustomerLogin);
 router.post("/login", postCustomerLogin);
 router.get("/logout", getCustomerLogout);
 router.get("/:id", cookieJwtAuth, getCustomer);

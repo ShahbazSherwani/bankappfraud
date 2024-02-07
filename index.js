@@ -6,7 +6,9 @@ require("dotenv").config();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(__dirname + "/public")); //static files
+
 app.set("view engine", "ejs"); //template engine
+app.engine('html', require('ejs').renderFile);
 const PORT = process.env.PORT;
 
 //routes
@@ -26,8 +28,9 @@ global.db = new sqlite3.Database("./database.db", function (err) {
 });
 
 app.get("/", (req, res) => {
-  res.send("Home Page");
+  res.render("index.html");
 });
+
 
 app.use("/agent", agentRoutes);
 app.use("/customer", customerRoutes);
