@@ -31,7 +31,8 @@ const postAgentLogin = function (req, res, next) {
 
 const getAgentLogout = function (req, res,next) {
     res.clearCookie("token");
-    res.send("agent is now logged out");
+    res.render("agent/logout.ejs");
+    //res.send("agent is now logged out");
     
 };
 
@@ -117,7 +118,8 @@ const postCustomerCallback = function (req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.send("token sent to customer");
+      res.render("agent/agenthome.html",{randomToken : randomToken });
+      //res.send("token sent to customer");
     }
   });
 };

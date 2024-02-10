@@ -125,11 +125,16 @@ const postCallback = function (req, res, next) {
   const values = [customerID, slot];
 
   global.db.all(query, values, function (err, rows) {
+    
     if (err) {
       next(err);
     } else {
       //no EJS page created yet!!
-      res.send(`customer ${customerID} booked slot at ${slot}`);
+     res.render("customer/callbackconfirmation.html", {
+         customerID: customerID,
+         slot: slot,
+         });
+      //res.send(`customer ${customerID} booked slot at ${slot}`);
     }
   });
 };
@@ -176,7 +181,7 @@ const getValidate = function (req, res) {
       next(err);
     } else {
       const active_call = rows[0];
-      res.render("customer/validateagent.ejs", {
+      res.render("customer/userhome.html", {
         active_call: active_call,
       });
     }

@@ -1,3 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+    <%- include('../partials/customerheader'); %>
 <form action="/customer/<%=customerID%>/bookedcallback" method="POST">
   <% for(let i = 0; i < slots.length; i++) { %>
   <h4> <%=slots[i]["fullDate"]%></h4>
@@ -8,4 +17,7 @@
   <% }; %>
   <input type="submit" />
 </form>
+</body>
+
+</html>
 
