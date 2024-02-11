@@ -7,6 +7,20 @@
 
 <body>
     <%- include('../partials/customerheader'); %>
+      <% if (existingCallback!== null) { %>
+      <h2>Existing appointment on <%=existingCallback["call_from"]%></h2>
+      <form action="/customer/<%=customerID%>/appointmentcancelled" method="POST">
+        <h3>Cancel appt</h3>    
+      <input type="hidden" name="existing_callback_id" value="<%=existingCallback["id"]%>">    
+      <input type="hidden" name="existing_callback_date" value="<%=existingCallback["call_from"]%>">    
+      <input type="submit" value="Cancel appointment" />
+      </form>
+      <br>
+      <h3>Reschedule appt</h3>
+      <% } %>
+
+  
+    
 <form action="/customer/<%=customerID%>/bookedcallback" method="POST">
   <% for(let i = 0; i < slots.length; i++) { %>
   <h4> <%=slots[i]["fullDate"]%></h4>
@@ -15,9 +29,12 @@
   <br />
   <% }; %> 
   <% }; %>
+  <% if (existingCallback!== null) { %>
+  <input type="hidden" name="existing_callback_id" value="<%=existingCallback["id"]%>">
+  <% } %>
   <input type="submit" />
 </form>
+
 </body>
 
 </html>
-

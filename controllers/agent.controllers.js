@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 
-const getAgentLogin = function(req,res,next){
-    res.render("agent/agentlogin.html");
-  };
+const getAgentLogin = function (req, res, next) {
+  res.render("agent/agentlogin.html");
+};
 
 const postAgentLogin = function (req, res, next) {
   const query = "SELECT id from agents WHERE username=? AND password=?";
@@ -29,11 +29,10 @@ const postAgentLogin = function (req, res, next) {
   });
 };
 
-const getAgentLogout = function (req, res,next) {
-    res.clearCookie("token");
-    res.render("agent/logout.ejs");
-    //res.send("agent is now logged out");
-    
+const getAgentLogout = function (req, res, next) {
+  res.clearCookie("token");
+  res.render("agent/logout.ejs");
+  //res.send("agent is now logged out");
 };
 
 const getAgent = function (req, res, next) {
@@ -83,7 +82,12 @@ const postCustomer = function (req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.send("token sent to customer");
+      res.render("agent/agenthome.html", {
+        agentID: agentID,
+        customer_id: customer_id,
+        randomToken: randomToken,
+      });
+      //res.send("token sent to customer");
     }
   });
 };
@@ -118,8 +122,41 @@ const postCustomerCallback = function (req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.render("agent/agenthome.html",{randomToken : randomToken });
+      console.log(rows);
+      res.render("agent/agenthome.html", {
+        agentID: agentID,
+        customer_id: customer_id,
+        randomToken: randomToken,
+      });
       //res.send("token sent to customer");
+    }
+  });
+};
+
+////
+const postValidated = function (req, res, next) {
+  const { validation_token, customer_id } = req.body;
+
+  const query =
+    "SELECT validation_token from active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+
+  const values = [customer_id];
+
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      //check if "agent entered code" is equal to server-generated validation token
+      if (String(validation_token) === String(rows[0]["validation_token"])) {
+        console.log(
+          validation_token,
+          " compare with",
+          String(rows[0]["validation_token"])
+        );
+        res.send("agent validated"); ///TO BE CHANGED
+      } else {
+        res.send("validation failed"); ///TO BE CHANGED
+      }
     }
   });
 };
@@ -133,4 +170,5 @@ module.exports = {
   postCustomer,
   getCustomersCallbacks,
   postCustomerCallback,
+  postValidated,
 };

@@ -11,6 +11,7 @@ const {
   postCustomer,
   getCustomersCallbacks,
   postCustomerCallback,
+  postValidated,
 } = require("../controllers/agent.controllers");
 
 router.get("/agent-login", getAgentLogin);
@@ -21,5 +22,6 @@ router.get("/:id/customers", cookieJwtAuth, getCustomers);
 router.post("/:id/customers", cookieJwtAuth, postCustomer);
 router.get("/:id/customers-callbacks", cookieJwtAuth, getCustomersCallbacks);
 router.post("/:id/customers-callbacks", cookieJwtAuth, postCustomerCallback);
+router.post("/:id/validated", cookieJwtAuth, postValidated);
 
 module.exports = router;

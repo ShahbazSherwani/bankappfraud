@@ -1,4 +1,3 @@
-
 -- This makes sure that foreign_key constraints are observed and that errors will be thrown for violations
 PRAGMA foreign_keys=ON;
 
@@ -62,4 +61,3 @@ INSERT INTO agents ('username', 'password') VALUES ('Nkoyo', '123456');
 INSERT INTO agents ('username', 'password') VALUES ('Jane Doe', '123456');
 
 COMMIT;
-
