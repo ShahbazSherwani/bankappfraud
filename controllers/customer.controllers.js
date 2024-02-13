@@ -169,8 +169,9 @@ const postCallback = function (req, res, next) {
 //route confirming cancellation of booked appointment
 const postCancelCallback = function (req, res, next) {
   const { existing_callback_date } = req.body;
-   res.render("customer/cancelconfirmation.html",{existing_callback_date:existing_callback_date});
- 
+  res.render("customer/cancelconfirmation.html", {
+    existing_callback_date: existing_callback_date,
+  });
 };
 
 const getFraudReport = function (req, res, next) {
@@ -216,9 +217,36 @@ const getValidate = function (req, res, next) {
       next(err);
     } else {
       const active_call = rows[0];
+
+      //minutes between - can be refactored as function
+      //check time between now and active_call request
+      // if greater than x amount minutes, token considerd expired
+
+      const diff = Math.abs(new Date() - new Date(active_call["created_at"]));
+      const minutes = Math.floor(diff / 1000 / 60);
+      const expired = minutes > 5 ? true : false;
+
       res.render("customer/userhome.html", {
         active_call: active_call,
+        expired: expired,
+        customerID: req.customer["id"],
       });
+    }
+  });
+};
+
+//Function respond to API client-side fetch requests
+const ApiValidationResponse = function (req, res, next) {
+  const tokenID = req.params.token;
+
+  const query = "SELECT * from active_calls WHERE id = ?";
+  const values = [tokenID];
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      const active_call = rows[0];
+      res.json(active_call);
     }
   });
 };
@@ -235,4 +263,5 @@ module.exports = {
   getFraudReport,
   postFraudReport,
   getValidate,
+  ApiValidationResponse,
 };

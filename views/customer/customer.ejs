@@ -14,7 +14,8 @@
             <h1 id="codegen" class="fs-4 p-5">Welcome <%=customer["username"]%></h1>
             <p>You registered for online banking with us at <%=customer["created_at"]%></p>
             <a href="/customer/<%=customer["id"]%>/schedulecallback"><button class="btn btn-primary mb-2" id="btn-agent">Request Callback</button></a>
-            <a href="/customer/<%=customer["id"]%>/validate"><button class="btn btn-primary mb-2" id="btn-agent">You have a call</button></a>
+            <a href="/customer/<%=customer["id"]%>/validate"><button class="btn btn-primary mb-2" id="btn-agent">Check if bank is calling</button></a>
+            <a href="/customer/<%=customer["id"]%>/fraud-report"><button class="btn btn-primary mb-2" id="btn-agent">Report Fraud</button></a>
     </div>
 
     <script type="module" src="index.js"></script>

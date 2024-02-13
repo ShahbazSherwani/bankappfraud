@@ -3,12 +3,14 @@ const app = express();
 var bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
+const cors = require("cors");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(__dirname + "/public")); //static files
+app.use(cors()); //GLOBALLY TO BE AMENDED TO JUST SPECIFIC ROUTE
 
 app.set("view engine", "ejs"); //template engine
-app.engine('html', require('ejs').renderFile);
+app.engine("html", require("ejs").renderFile);
 const PORT = process.env.PORT;
 
 //routes
@@ -30,7 +32,6 @@ global.db = new sqlite3.Database("./database.db", function (err) {
 app.get("/", (req, res) => {
   res.render("index.html");
 });
-
 
 app.use("/agent", agentRoutes);
 app.use("/customer", customerRoutes);

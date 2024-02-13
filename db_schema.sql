@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS active_calls (
 CREATE TABLE IF NOT EXISTS fraud_reports (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id INTEGER NOT NULL,
-    fraud_time TEXT NOT NULL,
+    fraud_time TIMESTAMP NOT NULL,
     fraud_tel TEXT NOT NULL,
     fraud_description TEXT NOT NULL,
     created_at NOT NULL DEFAULT CURRENT_TIMESTAMP,    

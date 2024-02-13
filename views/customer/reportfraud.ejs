@@ -9,14 +9,14 @@
     <%- include('../partials/customerheader'); %>
     <form action="/customer/<%=customer["id"]%>/fraud-report" method="POST">
       <!-- <label for="fname">First name:</label><br /> -->  
-      <label for="fraudTime">Estimated fraud time: </label>
-      <input type="time" id="fraudTime" name="fraud_time" />
+      <label for="fraudTime">Estimated fraud date and time: </label>
+      <input type="datetime-local" id="fraudTime" name="fraud_time" />
       <br />
       <label for="fraudTel">Fraud tel if known</label>
       <input type="text" id="fraudTel" name="fraud_tel" />
       <br />
       <label for="fraudDescription">Describe what happened: </label>
-      <input type="text" id="fraudDescription" name="fraud_description" />
+      <textarea type="text" id="fraudDescription" name="fraud_description"></textarea>
       <br />
       <input type="submit" value="Submit" />
     </form>

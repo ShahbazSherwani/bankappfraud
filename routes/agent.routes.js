@@ -10,6 +10,7 @@ const {
   getCustomers,
   postCustomer,
   getCustomersCallbacks,
+  createActiveCallAndToken,
   postCustomerCallback,
   postValidated,
 } = require("../controllers/agent.controllers");
@@ -19,9 +20,19 @@ router.post("/Agentlogin", postAgentLogin);
 router.get("/logout", getAgentLogout);
 router.get("/:id", cookieJwtAuth, getAgent);
 router.get("/:id/customers", cookieJwtAuth, getCustomers);
-router.post("/:id/customers", cookieJwtAuth, postCustomer);
+router.post(
+  "/:id/customers",
+  cookieJwtAuth,
+  createActiveCallAndToken,
+  postCustomer
+);
 router.get("/:id/customers-callbacks", cookieJwtAuth, getCustomersCallbacks);
-router.post("/:id/customers-callbacks", cookieJwtAuth, postCustomerCallback);
+router.post(
+  "/:id/customers-callbacks",
+  cookieJwtAuth,
+  createActiveCallAndToken,
+  postCustomerCallback
+);
 router.post("/:id/validated", cookieJwtAuth, postValidated);
 
 module.exports = router;
