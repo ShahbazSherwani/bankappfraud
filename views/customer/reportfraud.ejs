@@ -1,13 +1,33 @@
-<form action="/customer/<%=customer["id"]%>/fraud-report" method="POST">
-  <!-- <label for="fname">First name:</label><br /> -->  
-  <label for="fraudTime">Estimated fraud time: </label>
-  <input type="time" id="fraudTime" name="fraud_time" />
-  <br />
-  <label for="fraudTel">Fraud tel if known</label>
-  <input type="text" id="fraudTel" name="fraud_tel" />
-  <br />
-  <label for="fraudDescription">Describe what happened: </label>
-  <input type="text" id="fraudDescription" name="fraud_description" />
-  <br />
-  <input type="submit" value="Submit" />
-</form>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+    <%- include('../partials/customerheader'); %>
+    <form action="/customer/<%=customer["id"]%>/fraud-report" method="POST">
+      <!-- <label for="fname">First name:</label><br /> -->  
+      <label for="fraudTime">Estimated fraud date and time: </label>
+      <input type="datetime-local" id="fraudTime" name="fraud_time" />
+      <br />
+      <label for="fraudTel">Fraud tel if known</label>
+      <input type="text" id="fraudTel" name="fraud_tel" />
+      <br />
+      <label for="fraudDescription">Describe what happened: </label>
+      <textarea type="text" id="fraudDescription" name="fraud_description"></textarea>
+      <br />
+      <input type="submit" value="Submit" />
+    </form>
+
+    <script type="module" src="index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+
+
+</body>
+
+</html>

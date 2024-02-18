@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 
-const getCustomerLogin = function (req, res) {
-  res.render("customer/login.ejs");
+const getCustomerLogin = function (req, res, next) {
+  res.render("customer/login.html");
 };
 
-const postCustomerLogin = function (req, res) {
+const postCustomerLogin = function (req, res, next) {
   const query = "SELECT id from customers WHERE username=? AND password=?";
   const { username, password } = req.body;
   const values = [username, password];
@@ -85,9 +85,11 @@ const getCallback = function (req, res, next) {
     }
     slots.push({ fullDate, times, timestamps });
   }
+  //console.log(slots);
 
   //compare offered slots with future booked slots only, not past booked slots
-  const query = "SELECT call_from from callbacks where call_from >= ?";
+  const query =
+    "SELECT id, call_from, customer_id from callbacks where call_from >= ?";
   const earliestSlotOffered = slots[0]["timestamps"][0];
   const values = [earliestSlotOffered];
 
@@ -96,13 +98,24 @@ const getCallback = function (req, res, next) {
       next(err);
     } else {
       const callbacks = rows; //callback variable to filter only available slots
+      let existingCallback = null;
       //TRIPLE FOR LOOP!!!
       for (let i = 0; i < slots.length; i++) {
         for (let j = 0; j < slots[i]["timestamps"].length; j++) {
           for (let k = 0; k < callbacks.length; k++) {
             //if callback already booked, delete from slots
             if (slots[i]["timestamps"][j] === callbacks[k]["call_from"]) {
-              slots[i]["timestamps"].splice(j, 1);
+              //get existing customer callback if exists
+              if (callbacks[k]["customer_id"] === customerID) {
+                existingCallback = callbacks[k];
+              }
+
+              slots[i]["timestamps"] = slots[i]["timestamps"].filter(
+                (t, index) => index !== j
+              );
+              slots[i]["times"] = slots[i]["times"].filter(
+                (t, index) => index !== j
+              );
               j--;
             }
           }
@@ -111,9 +124,27 @@ const getCallback = function (req, res, next) {
       res.render("customer/schedulecallback.ejs", {
         customerID: customerID,
         slots: slots,
+        existingCallback: existingCallback,
       });
     }
   });
+};
+
+//SQL middleware
+//delete existing booked slot if appointment rescheduled
+const deleteExistingSlot = function (req, res, next) {
+  if (req.body.hasOwnProperty("existing_callback_id")) {
+    const { existing_callback_id } = req.body;
+    const query = "DELETE from callbacks where id = ?";
+    const values = [existing_callback_id];
+
+    global.db.all(query, values, function (err, rows) {
+      if (err) {
+        next(err);
+      }
+    });
+  }
+  next();
 };
 
 const postCallback = function (req, res, next) {
@@ -127,9 +158,19 @@ const postCallback = function (req, res, next) {
     if (err) {
       next(err);
     } else {
-      //no EJS page created yet!!
-      res.send(`customer ${customerID} booked slot at ${slot}`);
+      res.render("customer/callbackconfirmation.html", {
+        customerID: customerID,
+        slot: slot,
+      });
     }
+  });
+};
+
+//route confirming cancellation of booked appointment
+const postCancelCallback = function (req, res, next) {
+  const { existing_callback_date } = req.body;
+  res.render("customer/cancelconfirmation.html", {
+    existing_callback_date: existing_callback_date,
   });
 };
 
@@ -167,17 +208,45 @@ const postFraudReport = function (req, res, next) {
   });
 };
 
-const getValidate = function (req, res) {
-  const query = "SELECT * from active_calls WHERE customer_id = ? LIMIT 1";
+const getValidate = function (req, res, next) {
+  const query =
+    "SELECT * from active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
   const values = [req.customer["id"]];
   global.db.all(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
       const active_call = rows[0];
-      res.render("customer/validateagent.ejs", {
+
+      //minutes between - can be refactored as function
+      //check time between now and active_call request
+      // if greater than x amount minutes, token considerd expired
+
+      const diff = Math.abs(new Date() - new Date(active_call["created_at"]));
+      const minutes = Math.floor(diff / 1000 / 60);
+      const expired = minutes > 5 ? true : false;
+
+      res.render("customer/userhome.html", {
         active_call: active_call,
+        expired: expired,
+        customerID: req.customer["id"],
       });
+    }
+  });
+};
+
+//Function respond to API client-side fetch requests
+const ApiValidationResponse = function (req, res, next) {
+  const tokenID = req.params.token;
+
+  const query = "SELECT * from active_calls WHERE id = ?";
+  const values = [tokenID];
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      const active_call = rows[0];
+      res.json(active_call);
     }
   });
 };
@@ -188,8 +257,11 @@ module.exports = {
   getCustomerLogout,
   getCustomer,
   getCallback,
+  deleteExistingSlot,
   postCallback,
+  postCancelCallback,
   getFraudReport,
   postFraudReport,
   getValidate,
+  ApiValidationResponse,
 };

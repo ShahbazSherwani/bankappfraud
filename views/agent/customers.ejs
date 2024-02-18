@@ -1,12 +1,25 @@
-<ul>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+<%- include('../partials/agentheader'); %>
+<div class="d-flex flex-column justify-content-center align-items-center text-center " style="min-height: 100vh;">
+<ul class="list-inline">
   <% for(let i = 0; i < customers.length; i++) { %>
-  <li>
+  <li class="list-inline-item">
     <form action="" method="post">
-      <h1><%=customers[i]["username"]%></h1>
+      <h1  id="codegen"><%=customers[i]["username"]%></h1>
       <input type="hidden" name="customer_id"
       value="<%=customers[i]["customerID"]%>">
-      <input type="submit" value="send validation token" />
+      <input type="submit" value="send validation token" class="btn btn-primary mb-2 " id="btn-agent" />
     </form>
   </li>
   <% }; %>
 </ul>
+</div>
+</body>

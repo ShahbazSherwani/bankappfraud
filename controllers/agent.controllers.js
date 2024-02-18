@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const getAgentLogin = function (req, res, next) {
-  res.render("agent/login.ejs");
+  res.render("agent/agentlogin.html");
 };
 
 const postAgentLogin = function (req, res, next) {
@@ -31,7 +31,8 @@ const postAgentLogin = function (req, res, next) {
 
 const getAgentLogout = function (req, res, next) {
   res.clearCookie("token");
-  res.send("agent is now logged out");
+  res.render("agent/logout.ejs");
+  //res.send("agent is now logged out");
 };
 
 const getAgent = function (req, res, next) {
@@ -49,6 +50,35 @@ const getAgent = function (req, res, next) {
       });
     }
   });
+};
+
+//SQL Middleware to create active call
+const createActiveCallAndToken = function (req, res, next) {
+  let values = [];
+
+  const agentID = req.agent["id"];
+  const { customer_id } = req.body;
+  //generate random number of 4 digits - temp function  to be replaced by encrypted function
+  const randomToken = String(Math.random().toString().substring(2, 6));
+
+  if (req.body.hasOwnProperty("callback_id")) {
+    const callback_id = req.body.callback_id;
+    values = [customer_id, agentID, callback_id, randomToken];
+  } else {
+    values = [customer_id, agentID, randomToken];
+  }
+
+  const query =
+    values.length === 3
+      ? "INSERT INTO active_calls ('customer_id', 'agent_id', 'validation_token') VALUES (?,?,?)"
+      : "INSERT INTO active_calls ('customer_id', 'agent_id', 'callback_id', 'validation_token') VALUES (?,?,?,?)";
+
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    }
+  });
+  next();
 };
 
 const getCustomers = function (req, res, next) {
@@ -72,23 +102,27 @@ const getCustomers = function (req, res, next) {
 const postCustomer = function (req, res, next) {
   const { customer_id } = req.body;
   const agentID = req.agent["id"];
-  //generate random number of 4 digits - temp function, to be replaced by encrypted function
-  const randomToken = Math.random().toString().substring(2, 6);
   const query =
-    "INSERT INTO active_calls ('customer_id', 'agent_id','validation_token') VALUES (?,?,?)";
-  const values = [customer_id, agentID, randomToken];
+    "SELECT * from active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+  const values = [customer_id];
   global.db.all(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
-      res.send("token sent to customer");
+      const activeCall = rows[0];
+      res.render("agent/agenthome.html", {
+        agentID: agentID,
+        customer_id: customer_id,
+        randomToken: activeCall["validation_token"],
+        activeCallID: activeCall["id"],
+      });
     }
   });
 };
 
 const getCustomersCallbacks = function (req, res, next) {
   const query =
-    "SELECT customers.username, customers.id as customerID, callbacks.call_from, callbacks.id as callbackID FROM customers JOIN callbacks ON customers.id = callbacks.customer_id ORDER BY callbacks.call_from";
+    "SELECT customers.username, customers.id as customerID, callbacks.call_from, callbacks.id as callbackID FROM customers JOIN callbacks ON customers.id = callbacks.customer_id WHERE callbacks.id NOT IN (SELECT active_calls.callback_id FROM active_calls) ORDER BY customers.id, callbacks.call_from";
   const agentID = req.agent["id"];
 
   global.db.all(query, function (err, rows) {
@@ -105,18 +139,45 @@ const getCustomersCallbacks = function (req, res, next) {
 };
 
 const postCustomerCallback = function (req, res, next) {
-  const { customer_id, callback_id } = req.body;
+  const { customer_id } = req.body;
   const agentID = req.agent["id"];
-  //generate random number of 4 digits - temp function  to be replaced by encrypted function
-  const randomToken = Math.random().toString().substring(2, 6);
   const query =
-    "INSERT INTO active_calls ('customer_id', 'agent_id', 'callback_id', 'validation_token') VALUES (?,?,?,?)";
-  const values = [customer_id, agentID, callback_id, randomToken];
+    "SELECT * from active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+  const values = [customer_id];
   global.db.all(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
-      res.send("token sent to customer");
+      const activeCall = rows[0];
+      res.render("agent/agenthome.html", {
+        agentID: agentID,
+        customer_id: customer_id,
+        randomToken: activeCall["validation_token"],
+        activeCallID: activeCall["id"],
+      });
+    }
+  });
+};
+
+const postValidated = function (req, res, next) {
+  const { agent_entered_token_input, random_token, active_call_id } = req.body;
+
+  if (String(agent_entered_token_input) !== String(random_token)) {
+     return res.render("agent/notvalidated.html")
+    //return res.send("validation failed");
+   
+  }
+
+  const query =
+    "UPDATE active_calls set is_validated = 1, validated_at = CURRENT_TIMESTAMP WHERE id = ?";
+  const values = [active_call_id];
+
+  global.db.all(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    } else {
+      res.render("agent/validated.html")
+      //res.send("Successful validation");
     }
   });
 };
@@ -126,8 +187,10 @@ module.exports = {
   postAgentLogin,
   getAgentLogout,
   getAgent,
+  createActiveCallAndToken,
   getCustomers,
   postCustomer,
   getCustomersCallbacks,
   postCustomerCallback,
+  postValidated,
 };

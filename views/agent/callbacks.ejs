@@ -1,18 +1,28 @@
-<h1>Callbacks</h1>
+<!DOCTYPE html>
+<html lang="en">
 
-<ul>
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body>
+<%- include('../partials/agentheader'); %>
+<div class="d-flex flex-column justify-content-center align-items-center text-center " style="min-height: 100vh;">
+  <h1>Callbacks</h1> 
+<ul class="list-inline">
   <% for(let i = 0; i < callbackInfo.length; i++) { %>
-  <li>
+  <li class="list-inline-item">
     <form action="" method="POST">
-      <p>
+      <p id="codegen">
         <%=callbackInfo[i]["username"]%> requested call on
         <%=callbackInfo[i]["call_from"]%>
       </p>
       <input type="hidden" name="customer_id"
       value="<%=callbackInfo[i]["customerID"]%>"> <input type="hidden"
       name="callback_id" value="<%=callbackInfo[i]["callbackID"]%>">
-      <input type="submit" value="send validation token" />
+      <input type="submit" value="send validation token" class="btn btn-primary mb-2 " id="btn-agent" />
     </form>
   </li>
   <% }; %>
 </ul>
+</body>
