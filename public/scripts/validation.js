@@ -18,8 +18,8 @@ async function fetchTokenStatus() {
 
     validationStatus.innerHTML =
       is_validated === 0
-        ? "Token NOT validated, bear with us..."
-        : "Token VALIDATED by agent, you can continue the call...";
+        ? "Await Validation message, bear with us..."
+        : "Agent Validated "; 
   } catch (error) {
     console.log("ERROR", error);
   }

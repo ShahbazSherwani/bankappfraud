@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 var bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+
 require("dotenv").config();
 const cors = require("cors");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -36,9 +37,12 @@ app.get("/", (req, res) => {
 app.use("/agent", agentRoutes);
 app.use("/customer", customerRoutes);
 
+app.set('port',  3000);
+
 app.use((req, res, next) => {
   return res.status(400).send("URL not found");
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

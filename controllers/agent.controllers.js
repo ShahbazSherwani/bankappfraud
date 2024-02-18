@@ -163,7 +163,9 @@ const postValidated = function (req, res, next) {
   const { agent_entered_token_input, random_token, active_call_id } = req.body;
 
   if (String(agent_entered_token_input) !== String(random_token)) {
-    return res.send("validation failed");
+     return res.render("agent/notvalidated.html")
+    //return res.send("validation failed");
+   
   }
 
   const query =
@@ -174,7 +176,8 @@ const postValidated = function (req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.send("Successful validation");
+      res.render("agent/validated.html")
+      //res.send("Successful validation");
     }
   });
 };
