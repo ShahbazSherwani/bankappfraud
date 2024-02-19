@@ -10,7 +10,7 @@ Notes to run app as (version updated 19/02/2024)
 
 - Run `npm install` from the project directory to install all the node packages.
 
-- RUN `npm install mysql` to download and install mySql database driver
+- RUN `npm install mysql` to download and install mySql database driver if not already installed.
 
 -Run `mySql` to access mySQL database 
 

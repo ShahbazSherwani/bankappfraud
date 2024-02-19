@@ -105,7 +105,6 @@ const getCallback = function (req, res, next) {
       for (let i = 0; i < slots.length; i++) {
         for (let j = 0; j < slots[i]["timestamps"].length; j++) {
           for (let k = 0; k < callbacks.length; k++) {
-            console.log(new Date(callbacks[k]["call_from"]).toString());
             //if callback already booked, delete from slots
             if (new Date(slots[i]["timestamps"][j]).toString() === new Date(callbacks[k]["call_from"]).toString()) {
               //get existing customer callback if exists
