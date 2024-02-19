@@ -5,19 +5,20 @@ const getCustomerLogin = function (req, res, next) {
 };
 
 const postCustomerLogin = function (req, res, next) {
-  const query = "SELECT id from customers WHERE username=? AND password=?";
+  const query = "SELECT id FROM customers WHERE username=? AND password=?";
   const { username, password } = req.body;
   const values = [username, password];
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else if (rows.length === 0) {
       return res
         .status(403)
-        .send("You do not have permission to access this resource");
+        //.send("You do not have permission to access this resource");
+        .render("agent/invalidlogin.html");
     } else {
       const customer = rows[0];
-      const token = jwt.sign(customer, process.env.SECRET_CUSTOMER_KEY, {
+      const token = jwt.sign({customer}, process.env.SECRET_CUSTOMER_KEY, {
         expiresIn: "1h",
       });
       res.cookie("token", token, {
@@ -35,11 +36,11 @@ const getCustomerLogout = function (req, res) {
 };
 
 const getCustomer = function (req, res, next) {
-  const query = "SELECT * from customers WHERE id=?";
-  const customerID = req.customer["id"];
+  const query = "SELECT * FROM customers WHERE id=?";
+  const customerID = req.customer.customer.id;
   const values = [customerID];
 
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -52,7 +53,7 @@ const getCustomer = function (req, res, next) {
 };
 
 const getCallback = function (req, res, next) {
-  const customerID = req.customer["id"];
+  const customerID = req.customer.customer.id;
   const slots = [];
   const daysString = ["SUN", "MON", "TUES", "WEDS", "THURS", "FRI", "SAT"];
   const times = [
@@ -89,11 +90,12 @@ const getCallback = function (req, res, next) {
 
   //compare offered slots with future booked slots only, not past booked slots
   const query =
-    "SELECT id, call_from, customer_id from callbacks where call_from >= ?";
+    "SELECT id, call_from, customer_id FROM callbacks WHERE call_from >= ?";
   const earliestSlotOffered = slots[0]["timestamps"][0];
   const values = [earliestSlotOffered];
+  
 
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -103,13 +105,13 @@ const getCallback = function (req, res, next) {
       for (let i = 0; i < slots.length; i++) {
         for (let j = 0; j < slots[i]["timestamps"].length; j++) {
           for (let k = 0; k < callbacks.length; k++) {
+            console.log(new Date(callbacks[k]["call_from"]).toString());
             //if callback already booked, delete from slots
-            if (slots[i]["timestamps"][j] === callbacks[k]["call_from"]) {
+            if (new Date(slots[i]["timestamps"][j]).toString() === new Date(callbacks[k]["call_from"]).toString()) {
               //get existing customer callback if exists
               if (callbacks[k]["customer_id"] === customerID) {
                 existingCallback = callbacks[k];
               }
-
               slots[i]["timestamps"] = slots[i]["timestamps"].filter(
                 (t, index) => index !== j
               );
@@ -135,10 +137,10 @@ const getCallback = function (req, res, next) {
 const deleteExistingSlot = function (req, res, next) {
   if (req.body.hasOwnProperty("existing_callback_id")) {
     const { existing_callback_id } = req.body;
-    const query = "DELETE from callbacks where id = ?";
+    const query = "DELETE FROM callbacks WHERE id = ?";
     const values = [existing_callback_id];
 
-    global.db.all(query, values, function (err, rows) {
+    db.query(query, values, function (err, rows) {
       if (err) {
         next(err);
       }
@@ -148,13 +150,13 @@ const deleteExistingSlot = function (req, res, next) {
 };
 
 const postCallback = function (req, res, next) {
-  const customerID = req.customer["id"];
+  const customerID = req.customer.customer.id;
   const slot = req.body.time;
   const query =
-    "INSERT INTO callbacks ('customer_id', 'created_at', 'call_from') VALUES (?, CURRENT_TIMESTAMP, ?)";
+    "INSERT INTO callbacks (customer_id, created_at, call_from) VALUES (?, CURRENT_TIMESTAMP, ?)";
   const values = [customerID, slot];
 
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -175,10 +177,10 @@ const postCancelCallback = function (req, res, next) {
 };
 
 const getFraudReport = function (req, res, next) {
-  const query = "SELECT * from customers WHERE id=?";
-  const values = [req.customer["id"]];
+  const query = "SELECT * FROM customers WHERE id=?";
+  const values = [req.customer.customer.id];
 
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -192,14 +194,14 @@ const getFraudReport = function (req, res, next) {
 
 const postFraudReport = function (req, res, next) {
   const query =
-    "INSERT INTO fraud_reports ('customer_id', 'fraud_time', 'fraud_tel', 'fraud_description') VALUES (?,?,?,?)";
-  const customerID = req.customer["id"];
+    "INSERT INTO fraud_reports (customer_id, fraud_time, fraud_tel, fraud_description) VALUES (?,?,?,?)";
+  const customerID = req.customer.customer.id;
   const fraudTime = req.body.fraud_time;
   const fraudTel = req.body.fraud_tel;
   const fraudDescription = req.body.fraud_description;
   const values = [customerID, fraudTime, fraudTel, fraudDescription];
 
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -210,9 +212,9 @@ const postFraudReport = function (req, res, next) {
 
 const getValidate = function (req, res, next) {
   const query =
-    "SELECT * from active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
-  const values = [req.customer["id"]];
-  global.db.all(query, values, function (err, rows) {
+    "SELECT * FROM active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+  const values = [req.customer.customer.id];
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -229,7 +231,7 @@ const getValidate = function (req, res, next) {
       res.render("customer/userhome.html", {
         active_call: active_call,
         expired: expired,
-        customerID: req.customer["id"],
+        customerID: values,
       });
     }
   });
@@ -239,9 +241,9 @@ const getValidate = function (req, res, next) {
 const ApiValidationResponse = function (req, res, next) {
   const tokenID = req.params.token;
 
-  const query = "SELECT * from active_calls WHERE id = ?";
+  const query = "SELECT * FROM active_calls WHERE id = ?";
   const values = [tokenID];
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
