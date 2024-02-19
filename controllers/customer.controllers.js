@@ -12,13 +12,15 @@ const postCustomerLogin = function (req, res, next) {
     if (err) {
       next(err);
     } else if (rows.length === 0) {
-      return res
-        .status(403)
-        //.send("You do not have permission to access this resource");
-        .render("agent/invalidlogin.html");
+      return (
+        res
+          .status(403)
+          //.send("You do not have permission to access this resource");
+          .render("agent/invalidlogin.html")
+      );
     } else {
       const customer = rows[0];
-      const token = jwt.sign({customer}, process.env.SECRET_CUSTOMER_KEY, {
+      const token = jwt.sign({ customer }, process.env.SECRET_CUSTOMER_KEY, {
         expiresIn: "1h",
       });
       res.cookie("token", token, {
@@ -90,10 +92,9 @@ const getCallback = function (req, res, next) {
 
   //compare offered slots with future booked slots only, not past booked slots
   const query =
-    "SELECT id, call_from, customer_id FROM callbacks WHERE call_from >= ?";
+    "SELECT id, call_from, customer_id FROM callbacks WHERE call_from >= ? AND id NOT IN (SELECT active_calls.callback_id FROM active_calls)";
   const earliestSlotOffered = slots[0]["timestamps"][0];
   const values = [earliestSlotOffered];
-  
 
   db.query(query, values, function (err, rows) {
     if (err) {
@@ -106,7 +107,10 @@ const getCallback = function (req, res, next) {
         for (let j = 0; j < slots[i]["timestamps"].length; j++) {
           for (let k = 0; k < callbacks.length; k++) {
             //if callback already booked, delete from slots
-            if (new Date(slots[i]["timestamps"][j]).toString() === new Date(callbacks[k]["call_from"]).toString()) {
+            if (
+              new Date(slots[i]["timestamps"][j]).toString() ===
+              new Date(callbacks[k]["call_from"]).toString()
+            ) {
               //get existing customer callback if exists
               if (callbacks[k]["customer_id"] === customerID) {
                 existingCallback = callbacks[k];
@@ -225,7 +229,7 @@ const getValidate = function (req, res, next) {
 
       const diff = Math.abs(new Date() - new Date(active_call["created_at"]));
       const minutes = Math.floor(diff / 1000 / 60);
-      const expired = minutes > 5 ? true : false;
+      const expired = minutes > 65 ? true : false;
 
       res.render("customer/userhome.html", {
         active_call: active_call,
