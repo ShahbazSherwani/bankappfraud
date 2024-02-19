@@ -2,16 +2,25 @@
 
 Safe Tool for Bank Fraud
 
-Notes to run app as of 23/01/2024:
+Notes to run app as (version updated 19/02/2024)
 
-- SQLite for RDBMS (switched from MySQL)
+- mySql for RDBMS (switched from SQLITE)
+
+-install mySql database from https://www.mysql.com/downloads/
 
 - Run `npm install` from the project directory to install all the node packages.
 
-- Run `npm run build-db` to create the database on Mac or Linux
-  or run `npm run build-db-win` to create the database on Windows
+- RUN `npm install mysql` to download and install mySql database driver
 
-- Run `npm run start` to start serving the web app (Access via http://localhost:3000)
+-Run `mySql` to access mySQL database 
+
+-Run `CREATE` followed by a name for the database for the App e.g., securecomms
+
+-Run `use` followed by the name of database created e.g., use securecomms
+
+-Run `SOURCE` followed by path to the dumpfile /path/to/file.sql to load mySql tables to database
+
+-Run `npm run start` or `node index.js` or `node .` to start serving the web app (Access via http://localhost:3000)
 
 Test the app by browsing to the following routes:
 
