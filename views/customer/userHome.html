@@ -1,25 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <%- include('../partials/head'); %>
-</head>
+  </head>
 
-<body>
+  <body>
     <%- include('../partials/customerheader'); %>
-    <div class="d-flex flex-column justify-content-center align-items-center text-center " style="min-height: 100vh;">
-        <div class="form-group mb-2">
-            <h1 class="fs-4 p-5">You have a call from the Bank</h1>
-            <p>An agent will confrim the code below on the call</p>
-            <h1 id="codegen" class="fs-4 p-5"><%=active_call["validation_token"]%></h1>
-        </div>
+    <div
+      class="d-flex flex-column justify-content-center align-items-center text-center"
+      style="min-height: 100vh"
+    >
+      <% if (!expired) {%>
+      <div class="form-group mb-2">
+        <h1 class="fs-4 p-5">You have a call from the Bank</h1>
+        <p>An agent will confirm the code below on the call </p>
+        <p>only talk to agent when "AGENT VALIDATED" message appears on your screen</p>
+        <h1 id="codegen" class="fs-4 p-5">
+          <%=active_call["validation_token"]%>
+        </h1>
+        <h3 id="validation-status">Loading...</h3>
+      </div>
     </div>
+    <input id="customer-id" type="hidden" value="<%=customerID%>" />
+    <input id="token-id" type="hidden" value="<%=active_call["id"]%>" /> <% }
+    else { %>
+    <p>No call from bank, please terminate call</p>
+    <%} %>
 
     <script type="module" src="login.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous"></script>
-
-</body>
-
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <% if (!expired) { %>
+    <script src="/scripts/validation.js"></script>
+    <% } %>
+  </body>
 </html>

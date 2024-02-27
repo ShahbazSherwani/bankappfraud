@@ -5,7 +5,7 @@
   </head>
 
   <body>
-    <%- include('../partials/header'); %>
+    <%- include('../partials/agentheader'); %>
     <div
       class="d-flex flex-column justify-content-center align-items-center text-center"
       style="min-height: 100vh"
@@ -25,13 +25,19 @@
           <label for="inputName" class="sr-only">Name</label>
           <input
             type="text"
-            name="validation_token"
+            name="agent_entered_token_input"
             class="form-control pb"
             id="name"
             placeholder=""
             required
           />
           <input type="hidden" name="customer_id" value="<%=customer_id%>" />
+          <input
+            type="hidden"
+            name="active_call_id"
+            value="<%=activeCallID%>"
+          />
+          <input type="hidden" name="random_token" value="<%=randomToken%>" />
         </div>
         <button type="submit" class="btn btn-primary m-3">Confirm</button>
       </form>

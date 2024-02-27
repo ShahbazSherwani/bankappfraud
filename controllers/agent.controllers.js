@@ -5,26 +5,28 @@ const getAgentLogin = function (req, res, next) {
 };
 
 const postAgentLogin = function (req, res, next) {
-  const query = "SELECT id from agents WHERE username=? AND password=?";
+  const query = "SELECT id FROM agents WHERE username=? AND password=?";
   const { username, password } = req.body;
   const values = [username, password];
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else if (rows.length === 0) {
       return res
         .status(403)
-        .send("You do not have permission to access this resource");
+        //.send("You do not have permission to access this resource");
+        .render("agent/invalidlogin.html")
     } else {
       const agent = rows[0];
-      const token = jwt.sign(agent, process.env.SECRET_AGENT_KEY, {
-        expiresIn: "1h",
+      
+      const token = jwt.sign({agent}, process.env.SECRET_AGENT_KEY, {
+      expiresIn: "1h",
       });
-      res.cookie("token", token, {
+       res.cookie("token", token, {
         httpOnly: true,
       });
 
-      res.redirect(`/agent/${agent["id"]}`);
+      res.redirect(`/agent/${"id"}`);
     }
   });
 };
@@ -36,11 +38,11 @@ const getAgentLogout = function (req, res, next) {
 };
 
 const getAgent = function (req, res, next) {
-  const query = "SELECT * from agents WHERE id=?";
-  const agentID = req.agent["id"];
+  const query = "SELECT * FROM agents WHERE id=?";
+  const agentID = req.agent.agent.id;
   const values = [agentID];
 
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -52,11 +54,40 @@ const getAgent = function (req, res, next) {
   });
 };
 
-const getCustomers = function (req, res, next) {
-  const query = "SELECT username, id as customerID from customers";
-  const agentID = req.agent["id"];
+//SQL Middleware to create active call
+const createActiveCallAndToken = function (req, res, next) {
+  let values = [];
 
-  global.db.all(query, function (err, rows) {
+  const agentID = req.agent.agent.id;
+  const { customer_id } = req.body;
+  //generate random number of 4 digits - temp function  to be replaced by encrypted function
+  const randomToken = String(Math.random().toString().substring(2, 6));
+
+  if (req.body.hasOwnProperty("callback_id")) {
+    const callback_id = req.body.callback_id;
+    values = [customer_id, agentID, callback_id, randomToken];
+  } else {
+    values = [customer_id, agentID, randomToken];
+  }
+
+  const query =
+    values.length === 3
+      ? "INSERT INTO active_calls (customer_id, agent_id, validation_token) VALUES (?,?,?)"
+      : "INSERT INTO active_calls (customer_id, agent_id, callback_id, validation_token) VALUES (?,?,?,?)";
+
+  db.query(query, values, function (err, rows) {
+    if (err) {
+      next(err);
+    }
+  });
+  next();
+};
+
+const getCustomers = function (req, res, next) {
+  const query = "SELECT username, id as customerID FROM customers";
+  const agentID = req.agent.agent.id;
+
+  db.query(query, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -72,27 +103,31 @@ const getCustomers = function (req, res, next) {
 //postCustomer and postCustomerCallback can be merged as one function
 const postCustomer = function (req, res, next) {
   const { customer_id } = req.body;
-  const agentID = req.agent["id"];
-  //generate random number of 4 digits - temp function, to be replaced by encrypted function
-  const randomToken = Math.random().toString().substring(2, 6);
+  const agentID = req.agent.agent.id;
   const query =
-    "INSERT INTO active_calls ('customer_id', 'agent_id','validation_token') VALUES (?,?,?)";
-  const values = [customer_id, agentID, randomToken];
-  global.db.all(query, values, function (err, rows) {
+    "SELECT * FROM active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+  const values = [customer_id];
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
-      res.send("token sent to customer");
+      const activeCall = rows[0];
+      res.render("agent/agenthome.html", {
+        agentID: agentID,
+        customer_id: customer_id,
+        randomToken: activeCall["validation_token"],
+        activeCallID: activeCall["id"],
+      });
     }
   });
 };
 
 const getCustomersCallbacks = function (req, res, next) {
   const query =
-    "SELECT customers.username, customers.id as customerID, callbacks.call_from, callbacks.id as callbackID FROM customers JOIN callbacks ON customers.id = callbacks.customer_id ORDER BY callbacks.call_from";
-  const agentID = req.agent["id"];
+    "SELECT customers.username, customers.id as customerID, callbacks.call_from, callbacks.id as callbackID FROM customers JOIN callbacks ON customers.id = callbacks.customer_id WHERE callbacks.id NOT IN (SELECT active_calls.callback_id FROM active_calls) ORDER BY customers.id, callbacks.call_from";
+  const agentID = req.agent.agent.id;
 
-  global.db.all(query, function (err, rows) {
+  db.query(query, function (err, rows) {
     if (err) {
       next(err);
     } else {
@@ -106,52 +141,45 @@ const getCustomersCallbacks = function (req, res, next) {
 };
 
 const postCustomerCallback = function (req, res, next) {
-  const { customer_id, callback_id } = req.body;
-  const agentID = req.agent["id"];
-  //generate random number of 4 digits - temp function  to be replaced by encrypted function
-  const randomToken = Math.random().toString().substring(2, 6);
+  const { customer_id } = req.body;
+  const agentID = req.agent.agent.id;
   const query =
-    "INSERT INTO active_calls ('customer_id', 'agent_id', 'callback_id', 'validation_token') VALUES (?,?,?,?)";
-  const values = [customer_id, agentID, callback_id, randomToken];
-  global.db.all(query, values, function (err, rows) {
+    "SELECT * FROM active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+  const values = [customer_id];
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
-      console.log(rows);
+      const activeCall = rows[0];
       res.render("agent/agenthome.html", {
         agentID: agentID,
         customer_id: customer_id,
-        randomToken: randomToken,
+        randomToken: activeCall["validation_token"],
+        activeCallID: activeCall["id"],
       });
-      //res.send("token sent to customer");
     }
   });
 };
 
-////
 const postValidated = function (req, res, next) {
-  const { validation_token, customer_id } = req.body;
+  const { agent_entered_token_input, random_token, active_call_id } = req.body;
+
+  if (String(agent_entered_token_input) !== String(random_token)) {
+     return res.render("agent/notvalidated.html")
+    //return res.send("validation failed");
+   
+  }
 
   const query =
-    "SELECT validation_token from active_calls WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+    "UPDATE active_calls SET is_validated = 1, validated_at = CURRENT_TIMESTAMP WHERE id = ?";
+  const values = [active_call_id];
 
-  const values = [customer_id];
-
-  global.db.all(query, values, function (err, rows) {
+  db.query(query, values, function (err, rows) {
     if (err) {
       next(err);
     } else {
-      //check if "agent entered code" is equal to server-generated validation token
-      if (String(validation_token) === String(rows[0]["validation_token"])) {
-        console.log(
-          validation_token,
-          " compare with",
-          String(rows[0]["validation_token"])
-        );
-        res.send("agent validated"); ///TO BE CHANGED
-      } else {
-        res.send("validation failed"); ///TO BE CHANGED
-      }
+      res.render("agent/validated.html")
+      //res.send("Successful validation");
     }
   });
 };
@@ -161,6 +189,7 @@ module.exports = {
   postAgentLogin,
   getAgentLogout,
   getAgent,
+  createActiveCallAndToken,
   getCustomers,
   postCustomer,
   getCustomersCallbacks,
