@@ -22,6 +22,8 @@ Notes to run app as (version updated 19/02/2024)
 
 -Run `npm run start` or `node index.js` or `node .` to start serving the web app (Access via http://localhost:3000)
 
+deplyoing the following
+
 Test the app by browsing to the following routes:
 
 - http://localhost:3000
